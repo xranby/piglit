@@ -23,7 +23,6 @@
 import errno
 import os
 import subprocess
-import threading
 import shlex
 import types
 import re
@@ -73,7 +72,6 @@ class ExecTest(Test):
         self.command = command
         self.split_command = os.path.split(self.command[0])[1]
         self.env = {}
-        self.timeout = None
 
         if isinstance(self.command, basestring):
             self.command = shlex.split(str(self.command))
@@ -115,7 +113,7 @@ class ExecTest(Test):
                 else:
                     if env.dmesg:
                         old_dmesg = read_dmesg()
-                    (out, err, returncode, timeout) = \
+                    (out, err, returncode) = \
                         self.get_command_result(command, fullenv)
                     if env.dmesg:
                         dmesg_diff = get_dmesg_diff(old_dmesg, read_dmesg())
@@ -174,9 +172,6 @@ class ExecTest(Test):
             elif returncode != 0:
                 results['note'] = 'Returncode was {0}'.format(returncode)
 
-            if timeout:
-                results['result'] = 'timeout'
-
             if env.valgrind:
                 # If the underlying test failed, simply report
                 # 'skip' for this valgrind test.
@@ -201,7 +196,6 @@ class ExecTest(Test):
             results['returncode'] = returncode
             results['command'] = ' '.join(self.command)
             results['dmesg'] = dmesg_diff
-            results['timeout'] = timeout
 
         else:
             results = TestResult()
@@ -221,29 +215,13 @@ class ExecTest(Test):
 
     def get_command_result(self, command, fullenv):
         try:
-            timeout = False
             proc = subprocess.Popen(command,
                                     stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE,
                                     env=fullenv,
                                     universal_newlines=True)
-            output = ['', '']
-
-            def thread_fn():
-                output[0], output[1] = proc.communicate()
-
-            thread = threading.Thread(target=thread_fn)
-            thread.start()
-
-            thread.join(self.timeout)
-
-            if thread.is_alive():
-                proc.terminate()
-                thread.join()
-                timeout = True
-
+            out, err = proc.communicate()
             returncode = proc.returncode
-            out, err = output
         except OSError as e:
             # Different sets of tests get built under
             # different build configurations.  If
@@ -257,7 +235,7 @@ class ExecTest(Test):
                 returncode = None
             else:
                 raise e
-        return out, err, returncode, timeout
+        return out, err, returncode
 
 
 class PlainExecTest(ExecTest):

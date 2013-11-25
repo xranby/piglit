@@ -29,7 +29,6 @@ warn
 dmesg-fail
 fail
 crash
-timeout
 
 (NotRun, pass, skip) are considered equivalent for regression testing.
 
@@ -64,7 +63,6 @@ def status_lookup(status):
                    'crash': Crash,
                    'dmesg-warn': DmesgWarn,
                    'dmesg-fail': DmesgFail,
-                   'timeout' : Timeout,
                    'notrun': NotRun}
 
     try:
@@ -204,13 +202,3 @@ class Crash(Status):
 
     def __init__(self):
         pass
-
-
-class Timeout(Status):
-    name = 'timeout'
-    value = 50
-
-    def __init__(self):
-        pass
-
-
