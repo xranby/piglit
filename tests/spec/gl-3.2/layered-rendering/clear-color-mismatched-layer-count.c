@@ -237,7 +237,7 @@ piglit_init(int argc, char **argv)
 	int level, layer, i;
 	bool pass = true;
 	GLuint tex[2], fbo;
-	int num_layers[2] = { 8, 4 };
+	int num_layers[2] = { 4, 8 };
 	GLenum draw_buffers[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
 
 	layer_height = TEX_SIZE;
